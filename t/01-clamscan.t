@@ -9,9 +9,29 @@ use Catalyst::Test 'TestApp';
 use HTTP::Request::Common;
 use Data::Dumper;
 
-plan tests => 3;
+plan tests => 6;
 
-# test a single file upload
+{
+    my $request = POST(
+        "http://localhost/upload",
+        'Content-Type' => 'multipart/form-data',
+        'Content'      => [
+            'file1' => [
+                undef,
+                'foo.txt',
+                'Content-Type' => 'text/plain',
+                Content => 'x' x 1024,
+            ],
+        ]
+    );
+
+    ok( my $response = request($request), 'Request' );
+    ok( $response->is_success, 'Upload ok' );
+
+    my $content = $response->content;
+    ok( $content =~ /^(0|-1)$/xms, 'Scan ok' )
+}
+
 {
     my $request = POST(
         "http://localhost/upload",

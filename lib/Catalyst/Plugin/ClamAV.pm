@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use ClamAV::Client;
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 our $base    = 'clamav';
 
 sub clamscan {
@@ -18,11 +18,9 @@ sub clamscan {
     my $found = 0;
     foreach my $name (@names) {
         my $upload = $c->req->upload( $name );
-        unless($upload){
-            $c->log->error(qq{No upload field. name=$name});
-            return -1;
-        }
-        my $fh     = $upload->fh;
+        next unless $upload;
+
+        my $fh = $upload->fh;
         if ($fh) {
             my $virus = $scanner->scan_stream( $fh );
             seek( $fh, 0, 0 );
@@ -121,7 +119,7 @@ If clamd is stopping ( $scanner->ping failed ), -1 returned.
 
 =back
 
-=head1 See Allso
+=head1 SEE ALSO
 
 L<Catalyst> L<ClamAV::Client>
 
