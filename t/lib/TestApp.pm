@@ -15,7 +15,6 @@ TestApp->config(
     },
 );
 
-# Fail gracefully if we don't have FastMmap
 TestApp->setup( qw/ClamAV/ );
 
 sub upload : Local {
@@ -24,6 +23,24 @@ sub upload : Local {
     my $num = $c->clamscan( 'file1', 'file2' );
     if($num > 0){
         $c->log->info('VIRUS found.');
+    } elsif ($num == 0) {
+        $c->log->info('VIRUS not found.');
+    } else {
+        $c->log->info('not checked.');
+    }
+
+    $c->res->output( $num );
+}
+
+sub upload_detailed : Local {
+    my ( $self, $c ) = @_;
+
+    my @virus = $c->clamscan( 'file1', 'file2' );
+    my $num   = scalar @virus;
+
+    if($num > 0){
+        $c->log->info('VIRUS found.');
+        $c->log->info( Dumper(@virus) );
     } elsif ($num == 0) {
         $c->log->info('VIRUS not found.');
     } else {

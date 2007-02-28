@@ -11,6 +11,15 @@ use Data::Dumper;
 
 plan tests => 6;
 
+my $no_scan;
+if ( !$ENV{CLAMAV_SOCKET_NAME}
+  && !$ENV{CLAMAV_SOCKET_HOST}
+  && !$ENV{CLAMAV_SOCKET_PORT}
+) {
+    diag('To real scan test, set ENV CLAMAV_SOCKET_NAME or CLAMAV_SOCKET_HOST and CLAMAV_SOCKET_HOST.');
+    $no_scan = 1;
+}
+
 {
     my $request = POST(
         "http://localhost/upload",
@@ -29,7 +38,7 @@ plan tests => 6;
     ok( $response->is_success, 'Upload ok' );
 
     my $content = $response->content;
-    ok( $content =~ /^(0|-1)$/xms, 'Scan ok' )
+    ok( $content eq ( $no_scan ? '-1' : '0'), 'Scan ok' )
 }
 
 {
@@ -56,5 +65,5 @@ plan tests => 6;
     ok( $response->is_success, 'Upload ok' );
 
     my $content = $response->content;
-    ok( $content =~ /^(0|-1)$/xms, 'Scan ok' )
+    ok( $content eq ( $no_scan ? '-1' : '0'), 'Scan ok' )
 }

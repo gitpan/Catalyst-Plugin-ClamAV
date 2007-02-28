@@ -7,6 +7,7 @@ WriteMakefile(
     AUTHOR              => 'FUJIWARA Shunichiro <fujiwara@topicmaker.com>',
     VERSION_FROM        => 'lib/Catalyst/Plugin/ClamAV.pm',
     ABSTRACT_FROM       => 'lib/Catalyst/Plugin/ClamAV.pm',
+    LICENSE             => 'perl',
     PL_FILES            => {},
     PREREQ_PM => {
         'Catalyst'       => 0,

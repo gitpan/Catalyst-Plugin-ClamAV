@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use ClamAV::Client;
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 our $base    = 'clamav';
 
 sub clamscan {
@@ -16,6 +16,7 @@ sub clamscan {
     }
 
     my $found = 0;
+    my @virus;
     foreach my $name (@names) {
         my $upload = $c->req->upload( $name );
         next unless $upload;
@@ -26,11 +27,15 @@ sub clamscan {
             seek( $fh, 0, 0 );
             if ( $virus ) {
                 $found++;
+                push @virus, {
+                    name      => $name,
+                    signature => $virus,
+                };
                 $c->log->warn( __PACKAGE__ . " VIRUS found. signature='$virus'" );
             }
         }
     }
-    return $found;
+    return wantarray ? @virus : $found;
 }
 
 sub _init_clam {
@@ -40,14 +45,14 @@ sub _init_clam {
     foreach my $n(qw( socket_name socket_host socket_port )){
         $opt{$n} = $c->config->{$base}->{$n} if defined $c->config->{$base}->{$n};
     }
-    my( $scanner, $error );
+    my ( $scanner, $error );
     eval {
         $scanner = ClamAV::Client->new( %opt );
         if ( !$scanner or !$scanner->ping ) {
             $error = 1;
         }
     };
-    if( $@ || $error ) {
+    if ( $@ || $error ) {
         $c->log->error(qq{Cannot connect to ClamAV. $@});
         return;
     }
@@ -79,6 +84,9 @@ Catalyst::Plugin::ClamAV - ClamAV scanning Plugin for Catalyst
 
     # Virus scan upload files.
     my $found = $c->clamscan('field1', 'field2');
+
+    my @found_virus = $c->clamscan('field1', 'field2');
+    # e.g. @found_virus == ( { name => 'field1', signature => 'VIRUSNAME' } );
 
 =head1 DESCRIPTION
 
@@ -116,6 +124,12 @@ Controller:
 
 The number of found viruses is returned.
 If clamd is stopping ( $scanner->ping failed ), -1 returned.
+
+To get found virus detail,
+
+    @found_virus = $c->clamscan('field1', 'field2');
+
+@found_virus is list of hash ref ( e.g. { name => 'fieldname', signature => 'virusname' } ).
 
 =back
 
